@@ -3,6 +3,7 @@ package startSpring.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import startSpring.controller.dto.PersonRequestDTO;
 import startSpring.controller.dto.PersonResponseDTO;
 import startSpring.entity.Person;
 import startSpring.repository.PersonRepository;
@@ -11,15 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-public class PersonController<persons> {
-
-//    private final PersonRepository personRepository;
-//
-//    @Autowired
-//    public PersonController(PersonRepository personRepository){
-//        this.personRepository = personRepository;
-//    }
-
+public class PersonController {
 
     @Autowired
     private PersonRepository personRepository;
@@ -35,31 +28,15 @@ public class PersonController<persons> {
         persons.add(new Person("joanna", 24));
         persons.add(new Person("bred", 50));
         persons.add(new Person("kate", 33));
-
     }
-
-
-//    List<Person>personList = new ArrayList<>(personRepository.saveAll(persons));
-
-
-//    public Long createPerson(String name, Integer age) {
-//        Person person = new Person(name, age);
-//        return personRepository.save(person).getId();
-//    }
-//
-//
-//    @GetMapping("//{id}")
-//    public Person getPerson(@PathVariable Long id) {
-//        return null;
-//    }
-
 
     @GetMapping("/name")
     public PersonResponseDTO getPersonByNameFromRequestParam(@RequestParam("name") String name) {
 
         for (Person person : persons) {
-
             personRepository.save(person);
+        }
+        for (Person person : persons) {
             if (person.getName().equals(name))
                 return new PersonResponseDTO(person.getId(), person.getName(), person.getAge());
         }
@@ -68,8 +45,11 @@ public class PersonController<persons> {
 
     @GetMapping("/name/{name}")
     public PersonResponseDTO getPersonByNameFromPathVariable(@PathVariable String name) {
+        for (Person p : persons) {
+            personRepository.save(p);
+        }
+
         for (Person person : persons) {
-            personRepository.save(person);
             if (person.getName().equals(name)) {
                 return new PersonResponseDTO(person.getId(), person.getName(), person.getAge());
             }
@@ -79,8 +59,8 @@ public class PersonController<persons> {
 
     @ResponseBody
     @RequestMapping("/description")
-    public PersonResponseDTO getPersonByNameResponseBody(@RequestBody Person person){
-        for (Person p : persons){
+    public PersonResponseDTO getPersonByNameResponseBody(@RequestBody Person person) {
+        for (Person p : persons) {
             personRepository.save(p);
             if (p.getName().equals(person.getName()))
                 return new PersonResponseDTO(p.getId(), p.getName(), p.getAge());
@@ -88,9 +68,52 @@ public class PersonController<persons> {
         return null;
     }
 
-    @PostMapping("/person")
-    public Person createPerson(@RequestBody Person person) {
-        return new Person(person.getName(), person.getAge());
+    @PostMapping("/persons")
+    public Long createPerson(@RequestBody PersonRequestDTO personRequestDTO) {
+
+        for (Person p : persons) {
+            personRepository.save(p);
+        }
+
+        Person person = new Person(personRequestDTO.getName(), personRequestDTO.getAge());
+        persons.add(person);
+
+        return personRepository.save(person).getId();
     }
 
+    @DeleteMapping("/persons/{name}")
+    public Long deletePerson(@PathVariable String name) {
+
+        for (Person p : persons) {
+            personRepository.save(p);
+        }
+        for (Person person : persons) {
+            if (person.getName().equals(name)) {
+                persons.remove(person);
+                //personRepository.delete(person);
+                return person.getId();
+            }
+        }
+        return null;
+    }
+
+    @PatchMapping("/persons/{name}/{newName}/{newAge}")
+    public Long updatePerson(@PathVariable String name, @PathVariable String newName, @PathVariable Integer newAge) {
+        for (Person p : persons) {
+            personRepository.save(p);
+        }
+
+        for (Person person : persons) {
+            if (person.getName().equals(name)) {
+                person.setName(newName);
+                person.setAge(newAge);
+                personRepository.save(person);
+                return person.getId();
+            }
+        }
+        return null;
+    }
 }
+
+
+
